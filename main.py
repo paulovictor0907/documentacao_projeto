@@ -33,6 +33,59 @@ def save_diagram_hex(diagram_text, filename):
 
 
 diagrams = {
+        "er_diagram": """
+@startuml
+entity "Aluno" {
+  * id : int
+  --
+  nome : string
+  saldo : float
+  email : string
+}
+
+entity "Professor" {
+  * id : int
+  --
+  nome : string
+  departamento : string
+}
+
+entity "EmpresaParceira" {
+  * id : int
+  --
+  nome : string
+  vantagens : string
+}
+
+entity "Moeda" {
+  * id : int
+  --
+  quantidade : int
+  motivo : string
+}
+
+entity "Notificacao" {
+  * id : int
+  --
+  mensagem : string
+  data : datetime
+}
+
+entity "Historico" {
+  * id : int
+  --
+  tipo : string
+  data : datetime
+}
+
+"Aluno" ||--o{ "Moeda" : "Recebe"
+"Professor" ||--o{ "Moeda" : "Distribui"
+"EmpresaParceira" ||--o{ "Aluno" : "Oferece vantagem para"
+"Moeda" ||--o{ "Historico" : "Registrada em"
+"Aluno" ||--o{ "Historico" : "Possui"
+"Notificacao" ||--o{ "Aluno" : "Enviada para"
+@enduml
+    """,
     "component_diagram": """
 @startuml
 package "Sistema de Méritos" {
