@@ -74,6 +74,9 @@ package "Sistema de Méritos" {
 }
 @enduml
     """,
+
+
+
     "implantation_diagram": """
     @startuml
 node "Servidor Web" {
@@ -103,6 +106,9 @@ node "Servidor de Email" {
 
     @enduml
     """,
+
+
+
     "class_diagram": """
     @startuml
 class Usuario {
@@ -156,40 +162,9 @@ EmpresaParceira "1" -- "0..*" Notificacao : envia
 
 @enduml
 """,
-    "state_diagram": """@startuml
-[*] --> Inativo
 
-state Inativo {
-    [*] --> Cadastro
-    Cadastro --> Ativo : Cadastro Completo
-}
 
-state Ativo {
-    [*] --> ConsultandoExtrato
-    [*] --> RecebendoMoedas
-    [*] --> TrocandoMoedas
 
-    ConsultandoExtrato --> ConsultandoExtrato : Solicitação de Extrato
-    RecebendoMoedas --> RecebendoMoedas : Moedas Distribuídas
-    TrocandoMoedas --> TrocandoMoedas : Solicitação de Troca
-
-    RecebendoMoedas --> ConsultandoExtrato : Ver Saldo
-    TrocandoMoedas --> ConsultandoExtrato : Ver Saldo
-    ConsultandoExtrato --> RecebendoMoedas : Receber Moedas
-    ConsultandoExtrato --> TrocandoMoedas : Trocar Moedas
-}
-
-state DistribuindoMoedas {
-    [*] --> SelecionandoAluno
-    SelecionandoAluno --> ConfirmandoDistribuicao : Aluno Selecionado
-    ConfirmandoDistribuicao --> DistribuicaoConcluida : Moedas Distribuídas
-    DistribuicaoConcluida --> [*]
-}
-
-Ativo --> DistribuindoMoedas : Distribuir Moedas
-DistribuindoMoedas --> Ativo : Moeda Distribuída
-@enduml
-""",
 "sequence_diagram": """@startuml
 @startuml
 actor Professor
@@ -208,6 +183,102 @@ Sistema -> Professor : Confirmação de Distribuição Concluída
 
 @enduml
 """,
+
+
+
+"comunication_diagram": """@startuml
+actor Aluno as A
+actor Professor as P
+actor EmpresaParceira as E
+actor SistemaAutenticacao as SA
+
+control Sistema as S
+boundary BancoDeDados as BD
+
+A -> SA : Realizar login
+SA -> BD : Validar credenciais
+BD --> SA : Credenciais válidas/ inválidas
+SA --> A : Acesso permitido/negado
+
+A -> S : Realizar cadastro
+S -> BD : Salvar dados do aluno
+BD --> S : Confirmação do cadastro
+S --> A : Cadastro realizado
+
+P -> SA : Realizar login
+SA -> BD : Validar credenciais
+BD --> SA : Credenciais válidas/ inválidas
+SA --> P : Acesso permitido/negado
+
+P -> S : Enviar moedas para aluno
+S -> BD : Verificar saldo de moedas
+BD --> S : Saldo suficiente/insuficiente
+S -> A : Notificar por email
+S -> BD : Registrar transação
+S --> P : Transação realizada/negada
+
+A -> S : Consultar extrato
+S -> BD : Buscar dados de transações
+BD --> S : Lista de transações
+S --> A : Retornar extrato
+
+E -> S : Cadastrar vantagem
+S -> BD : Salvar dados da vantagem
+BD --> S : Confirmação do cadastro
+S --> E : Cadastro realizado
+
+A -> S : Trocar moedas por vantagem
+S -> BD : Verificar saldo e descontar moedas
+BD --> S : Saldo suficiente/insuficiente
+S -> A : Enviar email com cupom
+S -> E : Notificar parceiro com código de troca
+S -> BD : Registrar transação
+S --> A : Confirmação da troca
+@entduml""",
+
+
+
+"state_diagram": """@startuml
+@startuml
+[*] --> SistemaNaoAutenticado
+
+state SistemaNaoAutenticado {
+    [*] --> TelaLogin
+    TelaLogin --> SistemaAutenticado : Credenciais válidas
+    TelaLogin --> FalhaLogin : Credenciais inválidas
+    FalhaLogin --> TelaLogin : Tentar novamente
+}
+
+state SistemaAutenticado {
+    [*] --> MenuPrincipal
+    
+    state MenuPrincipal {
+        [*] --> AcessarPerfil
+        AcessarPerfil --> ConsultarSaldo : Aluno ou Professor
+        AcessarPerfil --> ConsultarExtrato : Aluno ou Professor
+        
+        AcessarPerfil --> TrocarMoedas : Aluno
+        TrocarMoedas --> EscolherVantagem : Selecionar item
+        EscolherVantagem --> ConfirmarTroca : Saldo suficiente
+        ConfirmarTroca --> MenuPrincipal : Troca realizada
+        EscolherVantagem --> TrocaCancelada : Saldo insuficiente
+        
+        AcessarPerfil --> EnviarMoedas : Professor
+        EnviarMoedas --> ConfirmarEnvio : Saldo suficiente
+        ConfirmarEnvio --> MenuPrincipal : Transação concluída
+        EnviarMoedas --> EnvioCancelado : Saldo insuficiente
+
+        AcessarPerfil --> CadastrarVantagem : EmpresaParceira
+        CadastrarVantagem --> ConfirmarCadastro : Dados válidos
+        ConfirmarCadastro --> MenuPrincipal : Cadastro realizado
+        CadastrarVantagem --> CadastroCancelado : Dados inválidos
+    }
+    
+    MenuPrincipal --> SistemaNaoAutenticado : Logout
+}
+
+[*] --> Finalizado : Fim da interação
+@enduml""",
 }
 
 
